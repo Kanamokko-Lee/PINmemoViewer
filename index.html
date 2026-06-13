@@ -56,6 +56,8 @@
     flex-direction: column;
     overflow: hidden;
   }
+
+  /* Top toolbar - title + status only */
   #toolbar {
     padding: 10px 16px;
     background: #2c2c2e;
@@ -69,33 +71,13 @@
     font-weight: 600;
     flex: 1;
   }
-  #settings-btn {
-    background: none;
-    border: none;
-    color: #8e8e93;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    line-height: 1;
-  }
-  #settings-btn:hover { background: #3a3a3c; color: #f2f2f7; }
-  #reload-btn {
-    background: #0a84ff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 14px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  #reload-btn:hover { background: #0070d8; }
   #status {
     font-size: 12px;
     color: #8e8e93;
     white-space: nowrap;
   }
 
+  /* Content area */
   #content {
     max-width: 100%;
     flex: 1;
@@ -105,12 +87,7 @@
   #airport-name {
     font-size: 22px;
     font-weight: 700;
-    margin-bottom: 4px;
-  }
-  #airport-meta {
-    font-size: 12px;
-    color: #8e8e93;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
   #airport-body {
     word-break: break-all;
@@ -127,7 +104,7 @@
     margin-left: -11px;
   }
   #watch-legend {
-    margin-top: 16px;
+    margin-top: 12px;
     font-size: 12px;
     color: #30d158;
     display: flex;
@@ -141,6 +118,11 @@
     height: 12px;
     border-left: 3px solid #30d158;
   }
+  #airport-meta {
+    margin-top: 16px;
+    font-size: 11px;
+    color: #636366;
+  }
 
   #empty-state {
     display: flex;
@@ -152,6 +134,28 @@
     gap: 8px;
   }
   #empty-state .icon { font-size: 48px; }
+
+  /* Bottom bar */
+  #bottombar {
+    padding: 8px 16px;
+    background: #2c2c2e;
+    border-top: 1px solid #3a3a3c;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .bottom-btn {
+    background: none;
+    border: none;
+    color: #8e8e93;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    line-height: 1;
+  }
+  .bottom-btn:hover { background: #3a3a3c; color: #f2f2f7; }
 
   /* Settings Modal */
   #modal-overlay {
@@ -238,20 +242,24 @@
   <div id="toolbar">
     <h1>PINmemo</h1>
     <span id="status"></span>
-    <button id="reload-btn" onclick="loadGist()">再読み込み</button>
-    <button id="settings-btn" onclick="openSettings()" title="設定">⚙️</button>
   </div>
+
   <div id="content">
     <div id="empty-state">
       <div class="icon">⚙️</div>
-      <div>右上の設定ボタンからGist IDを設定してください</div>
+      <div>下の設定ボタンからGist IDを設定してください</div>
     </div>
     <div id="airport-detail" style="display:none">
       <div id="airport-name"></div>
-      <div id="airport-meta"></div>
       <div id="airport-body"></div>
       <div id="watch-legend">Watch表示行</div>
+      <div id="airport-meta"></div>
     </div>
+  </div>
+
+  <div id="bottombar">
+    <button class="bottom-btn" onclick="loadGist()" title="再読み込み">↻</button>
+    <button class="bottom-btn" onclick="openSettings()" title="設定">⚙️</button>
   </div>
 </div>
 
@@ -303,10 +311,7 @@ async function loadGist() {
   const token = localStorage.getItem('gistToken') || '';
   const status = document.getElementById('status');
 
-  if (!gistId) {
-    openSettings();
-    return;
-  }
+  if (!gistId) { openSettings(); return; }
 
   status.textContent = '読み込み中...';
 
@@ -321,9 +326,7 @@ async function loadGist() {
     const fileKey = Object.keys(gist.files).find(k => k.endsWith('.html'));
     if (!fileKey) throw new Error('HTMLファイルが見つかりません');
 
-    const html = gist.files[fileKey].content;
-    airports = parseAirports(html);
-
+    airports = parseAirports(gist.files[fileKey].content);
     renderSidebar();
     if (airports.length > 0) selectAirport(0);
 
@@ -331,19 +334,15 @@ async function loadGist() {
     status.textContent = `${airports.length}空港 · ${updatedAt}`;
   } catch (e) {
     status.textContent = `エラー: ${e.message}`;
-    console.error(e);
   }
 }
 
 function parseAirports(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const divs = doc.querySelectorAll('.airport');
-  return Array.from(divs).map(div => ({
+  return Array.from(doc.querySelectorAll('.airport')).map(div => ({
     id: div.dataset.id || '',
     name: div.dataset.name || div.dataset.id || '',
-    lat: parseFloat(div.dataset.lat || '0'),
-    lon: parseFloat(div.dataset.lon || '0'),
     updated: div.dataset.updated || '',
     watchLineIndices: (div.dataset.watchLines || '')
       .split(',').map(s => parseInt(s)).filter(n => !isNaN(n)),
@@ -352,8 +351,7 @@ function parseAirports(html) {
 }
 
 function renderSidebar() {
-  const list = document.getElementById('airport-list');
-  list.innerHTML = airports.map((a, i) => `
+  document.getElementById('airport-list').innerHTML = airports.map((a, i) => `
     <div class="airport-item" onclick="selectAirport(${i})">
       ${a.name}
       <div class="airport-id">${a.id}</div>
@@ -363,41 +361,37 @@ function renderSidebar() {
 
 function selectAirport(index) {
   selectedIndex = index;
-  document.querySelectorAll('.airport-item').forEach((el, i) => {
-    el.classList.toggle('active', i === index);
-  });
+  document.querySelectorAll('.airport-item').forEach((el, i) =>
+    el.classList.toggle('active', i === index));
 
-  const airport = airports[index];
+  const a = airports[index];
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('airport-detail').style.display = 'block';
-  document.getElementById('airport-name').textContent = airport.name;
+  document.getElementById('airport-name').textContent = a.name;
+  document.getElementById('airport-body').innerHTML =
+    renderBodyWithWatchLines(a.body, a.watchLineIndices);
 
-  const updated = airport.updated
-    ? new Date(airport.updated).toLocaleString('ja-JP') : '不明';
+  const updated = a.updated ? new Date(a.updated).toLocaleString('ja-JP') : '不明';
   document.getElementById('airport-meta').textContent =
-    `${airport.id} · 更新: ${updated} · Watch行: ${airport.watchLineIndices.length > 0 ? airport.watchLineIndices.join(', ') : 'なし'}`;
-
-  const bodyEl = document.getElementById('airport-body');
-  bodyEl.innerHTML = renderBodyWithWatchLines(airport.body, airport.watchLineIndices);
+    `${a.id} · 更新: ${updated}` +
+    (a.watchLineIndices.length > 0 ? ` · Watch行: ${a.watchLineIndices.join(', ')}` : '');
 }
 
 function renderBodyWithWatchLines(html, watchIndices) {
   if (!html) return '<span style="color:#636366">本文なし</span>';
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
   const children = Array.from(doc.querySelector('div').children);
   if (children.length === 0) return html;
   return children.map((el, i) => {
-    const outer = document.createElement('div');
-    if (watchIndices.includes(i)) outer.className = 'watch-line';
-    outer.innerHTML = el.outerHTML;
-    return outer.outerHTML;
+    const wrap = document.createElement('div');
+    if (watchIndices.includes(i)) wrap.className = 'watch-line';
+    wrap.innerHTML = el.outerHTML;
+    return wrap.outerHTML;
   }).join('');
 }
 
 window.onload = () => {
-  const gistId = localStorage.getItem('gistId');
-  if (gistId) loadGist();
+  if (localStorage.getItem('gistId')) loadGist();
   else openSettings();
 };
 </script>
