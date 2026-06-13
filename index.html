@@ -17,8 +17,8 @@
 
   /* Sidebar */
   #sidebar {
-    width: 200px;
-    min-width: 200px;
+    width: 100px;
+    min-width: 100px;
     background: #2c2c2e;
     border-right: 1px solid #3a3a3c;
     display: flex;
@@ -26,24 +26,24 @@
     overflow-y: auto;
   }
   #sidebar h2 {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     color: #8e8e93;
-    padding: 16px 16px 8px;
+    padding: 12px 10px 6px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
   .airport-item {
-    padding: 12px 16px;
+    padding: 10px 10px;
     cursor: pointer;
     border-bottom: 1px solid #3a3a3c;
-    font-size: 15px;
+    font-size: 13px;
     transition: background 0.15s;
   }
   .airport-item:hover { background: #3a3a3c; }
   .airport-item.active { background: #0a84ff; color: white; }
   .airport-item .airport-id {
-    font-size: 11px;
+    font-size: 10px;
     color: #8e8e93;
     margin-top: 2px;
   }
@@ -57,35 +57,39 @@
     overflow: hidden;
   }
   #toolbar {
-    padding: 12px 20px;
+    padding: 10px 16px;
     background: #2c2c2e;
     border-bottom: 1px solid #3a3a3c;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
   }
-  #toolbar input {
+  #toolbar h1 {
+    font-size: 15px;
+    font-weight: 600;
     flex: 1;
-    background: #3a3a3c;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: #f2f2f7;
-    font-size: 14px;
-    outline: none;
   }
-  #toolbar input::placeholder { color: #636366; }
-  #load-btn {
+  #settings-btn {
+    background: none;
+    border: none;
+    color: #8e8e93;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    line-height: 1;
+  }
+  #settings-btn:hover { background: #3a3a3c; color: #f2f2f7; }
+  #reload-btn {
     background: #0a84ff;
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 14px;
+    padding: 6px 14px;
+    font-size: 13px;
     cursor: pointer;
-    white-space: nowrap;
   }
-  #load-btn:hover { background: #0070d8; }
+  #reload-btn:hover { background: #0070d8; }
   #status {
     font-size: 12px;
     color: #8e8e93;
@@ -114,7 +118,6 @@
     border-radius: 12px;
     padding: 20px;
   }
-  /* Watch lines highlight */
   .watch-line {
     border-left: 3px solid #30d158;
     padding-left: 8px;
@@ -147,27 +150,78 @@
   }
   #empty-state .icon { font-size: 48px; }
 
-  /* Token input */
-  #token-row {
-    display: flex;
+  /* Settings Modal */
+  #modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
     align-items: center;
-    gap: 8px;
-    padding: 8px 20px;
-    background: #2c2c2e;
-    border-bottom: 1px solid #3a3a3c;
+    justify-content: center;
   }
-  #token-row label { font-size: 12px; color: #8e8e93; white-space: nowrap; }
-  #token-input {
-    flex: 1;
+  #modal-overlay.open { display: flex; }
+  #modal {
+    background: #2c2c2e;
+    border-radius: 16px;
+    padding: 24px;
+    width: 360px;
+    max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  #modal h2 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .field-label {
+    font-size: 12px;
+    color: #8e8e93;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .field-input {
+    width: 100%;
     background: #3a3a3c;
     border: none;
-    border-radius: 6px;
-    padding: 6px 10px;
+    border-radius: 8px;
+    padding: 10px 12px;
     color: #f2f2f7;
-    font-size: 13px;
+    font-size: 14px;
     outline: none;
+    margin-bottom: 16px;
     font-family: monospace;
   }
+  .field-input::placeholder { color: #636366; }
+  .modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .btn-cancel {
+    flex: 1;
+    background: #3a3a3c;
+    color: #f2f2f7;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-save {
+    flex: 1;
+    background: #0a84ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-cancel:hover { background: #48484a; }
+  .btn-save:hover { background: #0070d8; }
 </style>
 </head>
 <body>
@@ -179,18 +233,15 @@
 
 <div id="main">
   <div id="toolbar">
-    <input type="text" id="gist-id" placeholder="Gist ID" value="ae9f42ecc9083c9591938a0676f7b64b">
-    <button id="load-btn" onclick="loadGist()">読み込む</button>
+    <h1>PINmemo</h1>
     <span id="status"></span>
-  </div>
-  <div id="token-row">
-    <label>GitHub Token (任意):</label>
-    <input type="password" id="token-input" placeholder="ghp_xxxx... (プライベートGistの場合)">
+    <button id="reload-btn" onclick="loadGist()">再読み込み</button>
+    <button id="settings-btn" onclick="openSettings()" title="設定">⚙️</button>
   </div>
   <div id="content">
     <div id="empty-state">
-      <div class="icon">🔐</div>
-      <div>Gist IDを入力して「読み込む」を押してください</div>
+      <div class="icon">⚙️</div>
+      <div>右上の設定ボタンからGist IDを設定してください</div>
     </div>
     <div id="airport-detail" style="display:none">
       <div id="airport-name"></div>
@@ -201,16 +252,58 @@
   </div>
 </div>
 
+<!-- Settings Modal -->
+<div id="modal-overlay" onclick="closeSettingsOnOverlay(event)">
+  <div id="modal">
+    <h2>⚙️ 設定</h2>
+    <div class="field-label">Gist ID</div>
+    <input class="field-input" type="text" id="modal-gist-id" placeholder="ae9f42ecc9083c9591938a0676f7b64b">
+    <div class="field-label">GitHub Token（プライベートGistの場合）</div>
+    <input class="field-input" type="password" id="modal-token" placeholder="ghp_xxxx...">
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closeSettings()">キャンセル</button>
+      <button class="btn-save" onclick="saveSettings()">保存して読み込む</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let airports = [];
 let selectedIndex = 0;
 
+function openSettings() {
+  document.getElementById('modal-gist-id').value = localStorage.getItem('gistId') || '';
+  document.getElementById('modal-token').value = localStorage.getItem('gistToken') || '';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function closeSettingsOnOverlay(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeSettings();
+}
+
+function saveSettings() {
+  const gistId = document.getElementById('modal-gist-id').value.trim();
+  const token = document.getElementById('modal-token').value.trim();
+  if (gistId) localStorage.setItem('gistId', gistId);
+  if (token) localStorage.setItem('gistToken', token);
+  else localStorage.removeItem('gistToken');
+  closeSettings();
+  loadGist();
+}
+
 async function loadGist() {
-  const gistId = document.getElementById('gist-id').value.trim();
-  const token = document.getElementById('token-input').value.trim();
+  const gistId = localStorage.getItem('gistId');
+  const token = localStorage.getItem('gistToken') || '';
   const status = document.getElementById('status');
 
-  if (!gistId) return;
+  if (!gistId) {
+    openSettings();
+    return;
+  }
 
   status.textContent = '読み込み中...';
 
@@ -222,7 +315,6 @@ async function loadGist() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const gist = await res.json();
 
-    // Find the airports HTML file
     const fileKey = Object.keys(gist.files).find(k => k.endsWith('.html'));
     if (!fileKey) throw new Error('HTMLファイルが見つかりません');
 
@@ -233,7 +325,7 @@ async function loadGist() {
     if (airports.length > 0) selectAirport(0);
 
     const updatedAt = new Date(gist.updated_at).toLocaleString('ja-JP');
-    status.textContent = `${airports.length}空港 · 更新: ${updatedAt}`;
+    status.textContent = `${airports.length}空港 · ${updatedAt}`;
   } catch (e) {
     status.textContent = `エラー: ${e.message}`;
     console.error(e);
@@ -268,8 +360,6 @@ function renderSidebar() {
 
 function selectAirport(index) {
   selectedIndex = index;
-
-  // Update sidebar active state
   document.querySelectorAll('.airport-item').forEach((el, i) => {
     el.classList.toggle('active', i === index);
   });
@@ -280,42 +370,32 @@ function selectAirport(index) {
   document.getElementById('airport-name').textContent = airport.name;
 
   const updated = airport.updated
-    ? new Date(airport.updated).toLocaleString('ja-JP')
-    : '不明';
+    ? new Date(airport.updated).toLocaleString('ja-JP') : '不明';
   document.getElementById('airport-meta').textContent =
     `${airport.id} · 更新: ${updated} · Watch行: ${airport.watchLineIndices.length > 0 ? airport.watchLineIndices.join(', ') : 'なし'}`;
 
-  // Render body with watch line highlights
   const bodyEl = document.getElementById('airport-body');
   bodyEl.innerHTML = renderBodyWithWatchLines(airport.body, airport.watchLineIndices);
 }
 
 function renderBodyWithWatchLines(html, watchIndices) {
   if (!html) return '<span style="color:#636366">本文なし</span>';
-
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
-  const container = doc.querySelector('div');
-  const children = Array.from(container.children);
-
-  if (children.length === 0) {
-    // No block elements, return as-is
-    return html;
-  }
-
+  const children = Array.from(doc.querySelector('div').children);
+  if (children.length === 0) return html;
   return children.map((el, i) => {
-    const isWatch = watchIndices.includes(i);
     const outer = document.createElement('div');
-    if (isWatch) outer.className = 'watch-line';
+    if (watchIndices.includes(i)) outer.className = 'watch-line';
     outer.innerHTML = el.outerHTML;
     return outer.outerHTML;
   }).join('');
 }
 
-// Auto-load on page open
 window.onload = () => {
-  const gistId = document.getElementById('gist-id').value.trim();
+  const gistId = localStorage.getItem('gistId');
   if (gistId) loadGist();
+  else openSettings();
 };
 </script>
 </body>
